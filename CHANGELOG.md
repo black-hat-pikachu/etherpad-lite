@@ -31,6 +31,11 @@
       different. See
       [citizenos/ep_image_upload#49](https://github.com/citizenos/ep_image_upload/pull/49)
       for an example fix.
+  * Changes to the `src/static/js/Changeset.js` library:
+    * Several functions that should have never been public are no longer
+      exported: `applyZip()`, `assert()`, `clearOp()`, `cloneOp()`, `copyOp()`,
+      `error()`, `followAttributes()`, `opString()`, `stringOp()`,
+      `textLinesMutator()`, `toBaseTen()`, `toSplices()`.
 
 ### Notable enhancements
 
