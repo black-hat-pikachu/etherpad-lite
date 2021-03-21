@@ -668,15 +668,6 @@ const textLinesMutator = (lines) => {
   //            curCol == 0
 
   /**
-   * Adds and/or removes entries at a specific offset in `lines`. Called when leaving the splice.
-   *
-   * @param {[number, number?, ...string[]?]} s - curSplice
-   */
-  const linesApplySplice = (s) => {
-    lines.splice(...s);
-  };
-
-  /**
    * Get a line from `lines` at given index.
    *
    * @param {number} idx - an index
@@ -737,7 +728,7 @@ const textLinesMutator = (lines) => {
    * close or TODO(doc).
    */
   const leaveSplice = () => {
-    linesApplySplice(curSplice);
+    lines.splice(...curSplice);
     curSplice.length = 2;
     curSplice[0] = curSplice[1] = 0;
     inSplice = false;
