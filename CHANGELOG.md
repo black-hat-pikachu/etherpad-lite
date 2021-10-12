@@ -39,6 +39,7 @@
     * `appendATextToAssembler()`: Deprecated in favor of the new
       `opsFromAText()` generator function.
     * `newOp()`: Deprecated in favor of the new `Op` class.
+    * `opAssembler()`: Deprecated in favor of the new `serializeOps()` function.
     * `opIterator()`: Deprecated in favor of the new `deserializeOps()`
       generator function. Also, the unused start index parameter has been
       removed, as has the unused `lastIndex()` method on the returned object.

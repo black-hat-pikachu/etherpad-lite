@@ -316,7 +316,7 @@ const copyOp = (op1, op2 = new Op()) => Object.assign(op2, op1);
  * @param {Iterable<Op>} ops - Iterable of operations to serialize.
  * @returns {string} A string containing the encoded op data (example: '|5=2p=v*4*5+1').
  */
-const serializeOps = (ops) => {
+exports.serializeOps = (ops) => {
   let res = '';
   for (const op of ops) res += op.toString();
   return res;
@@ -324,6 +324,8 @@ const serializeOps = (ops) => {
 
 /**
  * Serializes a sequence of Ops.
+ *
+ * @deprecated Use `serializeOps` instead.
  */
 class OpAssembler {
   constructor() {
@@ -414,7 +416,7 @@ class MergingOpAssembler {
   }
 
   _serialize(finalize) {
-    this._serialized = serializeOps(squashOps(this._ops, finalize));
+    this._serialized = exports.serializeOps(squashOps(this._ops, finalize));
   }
 
   clear() {
@@ -539,7 +541,7 @@ class SmartOpAssembler {
   }
 
   _serialize(finalize) {
-    this._serialized = serializeOps((function* () {
+    this._serialized = exports.serializeOps((function* () {
       this._lengthChange = yield* canonicalizeOps(this._ops, finalize);
     }).call(this));
   }
@@ -650,9 +652,13 @@ exports.smartOpAssembler = () => new SmartOpAssembler();
 exports.mergingOpAssembler = () => new MergingOpAssembler();
 
 /**
+ * @deprecated Use `serializeOps` instead.
  * @returns {OpAssembler}
  */
-exports.opAssembler = () => new OpAssembler();
+exports.opAssembler = () => {
+  warnDeprecated('Changeset.opAssembler() is deprecated; use Changeset.serializeOps() instead');
+  return new OpAssembler();
+};
 
 /**
  * A custom made String Iterator
