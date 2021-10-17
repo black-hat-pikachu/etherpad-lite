@@ -60,13 +60,11 @@ const error = (msg) => {
  * throw an exception.
  *
  * @param {boolean} b - assertion condition
- * @param {...any} msgParts - error message to include in the exception
- * @type {(b: boolean, ...msgParts: any[]) => asserts b}
+ * @param {string} msg - error message to include in the exception
+ * @type {(b: boolean, msg: string) => asserts b}
  */
-const assert = (b, ...msgParts) => {
-  if (!b) {
-    error(`Failed assertion: ${msgParts.join('')}`);
-  }
+const assert = (b, msg) => {
+  if (!b) error(`Failed assertion: ${msg}`);
 };
 
 /**
@@ -333,13 +331,13 @@ exports.checkRep = (cs) => {
         break;
       case '-':
         oldPos += o.chars;
-        assert(oldPos <= oldLen, oldPos, ' > ', oldLen, ' in ', cs);
+        assert(oldPos <= oldLen, `${oldPos} > ${oldLen} in ${cs}`);
         break;
       case '+':
       {
         calcNewLen += o.chars;
         numInserted += o.chars;
-        assert(calcNewLen <= newLen, calcNewLen, ' > ', newLen, ' in ', cs);
+        assert(calcNewLen <= newLen, `${calcNewLen} > ${newLen} in ${cs}`);
         break;
       }
     }
@@ -574,7 +572,7 @@ exports.stringIterator = (str) => {
   const getnewLines = () => newLines;
 
   const assertRemaining = (n) => {
-    assert(n <= remaining(), '!(', n, ' <= ', remaining(), ')');
+    assert(n <= remaining(), `!( ${n} <= ${remaining()} )`);
   };
 
   const take = (n) => {
@@ -1067,7 +1065,7 @@ exports.pack = (oldLen, newLen, opsStr, bank) => {
  */
 exports.applyToText = (cs, str) => {
   const unpacked = exports.unpack(cs);
-  assert(str.length === unpacked.oldLen, 'mismatched apply: ', str.length, ' / ', unpacked.oldLen);
+  assert(str.length === unpacked.oldLen, `mismatched apply: ${str.length} / ${unpacked.oldLen}`);
   const csIter = exports.opIterator(unpacked.ops);
   const bankIter = exports.stringIterator(unpacked.charBank);
   const strIter = exports.stringIterator(str);
@@ -1300,7 +1298,7 @@ exports.mutateAttributionLines = (cs, lines, pool) => {
     }
     lineAssem.append(op);
     if (op.lines <= 0) return;
-    assert(op.lines === 1, "Can't have op.lines of ", op.lines, ' in attribution lines');
+    assert(op.lines === 1, `Can't have op.lines of ${op.lines} in attribution lines`);
     // ship it to the mut
     mut.insert(lineAssem.toString(), 1);
     lineAssem = null;
