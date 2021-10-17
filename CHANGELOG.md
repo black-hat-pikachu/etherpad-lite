@@ -38,6 +38,7 @@
       `textLinesMutator()`, `toBaseTen()`, `toSplices()`.
     * `appendATextToAssembler()`: Deprecated in favor of the new
       `opsFromAText()` generator function.
+    * `builder()`: Deprecated in favor of the new `Builder` class.
     * `newOp()`: Deprecated in favor of the new `Op` class.
     * `opAssembler()`: Deprecated in favor of the new `serializeOps()` function.
     * `mergingOpAssembler()`: Deprecated in favor of the new `squashOps()`
