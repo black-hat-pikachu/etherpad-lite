@@ -246,6 +246,7 @@ class OpIter {
     return opOut;
   }
 }
+exports.OpIter = OpIter;
 
 /**
  * Creates an iterator which decodes string changeset operations.

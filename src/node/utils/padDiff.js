@@ -271,7 +271,7 @@ PadDiff.prototype._createDeletionChangeset = function (cs, startAText, apool) {
   const consumeAttribRuns = (numChars, func /* (len, attribs, endsLine)*/) => {
     if ((!curLineOpIter) || (curLineOpIterLine !== curLine)) {
       // create curLineOpIter and advance it to curChar
-      curLineOpIter = Changeset.opIterator(aLinesGet(curLine));
+      curLineOpIter = new Changeset.OpIter(aLinesGet(curLine));
       curLineOpIterLine = curLine;
       let indexIntoLine = 0;
       let done = false;
@@ -292,7 +292,7 @@ PadDiff.prototype._createDeletionChangeset = function (cs, startAText, apool) {
         curChar = 0;
         curLineOpIterLine = curLine;
         curLineNextOp.chars = 0;
-        curLineOpIter = Changeset.opIterator(aLinesGet(curLine));
+        curLineOpIter = new Changeset.OpIter(aLinesGet(curLine));
       }
 
       if (!curLineNextOp.chars) {
