@@ -42,6 +42,8 @@
     * `opAssembler()`: Deprecated in favor of the new `serializeOps()` function.
     * `mergingOpAssembler()`: Deprecated in favor of the new `squashOps()`
       generator function (combined with `serializeOps()`).
+    * `smartOpAssembler()`: Deprecated in favor of the new `canonicalizeOps()`
+      generator function (combined with `serializeOps()`).
     * `opIterator()`: Deprecated in favor of the new `deserializeOps()`
       generator function. Also, the unused start index parameter has been
       removed, as has the unused `lastIndex()` method on the returned object.
