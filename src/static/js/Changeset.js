@@ -189,7 +189,7 @@ exports.newLen = (cs) => exports.unpack(cs).newLen;
  * @yields {Op}
  * @returns {Generator<Op>}
  */
-const deserializeOps = function* (ops) {
+exports.deserializeOps = function* (ops) {
   // TODO: Migrate to String.prototype.matchAll() once there is enough browser support.
   const regex = /((?:\*[0-9a-z]+)*)(?:\|([0-9a-z]+))?([-+=])([0-9a-z]+)|(.)/g;
   let match;
@@ -208,13 +208,15 @@ const deserializeOps = function* (ops) {
  * Iterator over a changeset's operations.
  *
  * Note: This class does NOT implement the ECMAScript iterable or iterator protocols.
+ *
+ * @deprecated Use `deserializeOps` instead.
  */
 class OpIter {
   /**
    * @param {string} ops - String encoding the change operations to iterate over.
    */
   constructor(ops) {
-    this._gen = deserializeOps(ops);
+    this._gen = exports.deserializeOps(ops);
     this._next = this._gen.next();
   }
 
@@ -248,10 +250,14 @@ class OpIter {
 /**
  * Creates an iterator which decodes string changeset operations.
  *
+ * @deprecated Use `deserializeOps` instead.
  * @param {string} opsStr - String encoding of the change operations to perform.
  * @returns {OpIter} Operator iterator object.
  */
-exports.opIterator = (opsStr) => new OpIter(opsStr);
+exports.opIterator = (opsStr) => {
+  warnDeprecated('Changeset.opIterator() is deprecated; use Changeset.deserializeOps() instead');
+  return new OpIter(opsStr);
+};
 
 /**
  * Cleans an Op object.
@@ -372,9 +378,7 @@ exports.checkRep = (cs) => {
   let oldPos = 0;
   let calcNewLen = 0;
   let numInserted = 0;
-  const iter = new OpIter(ops);
-  while (iter.hasNext()) {
-    const o = iter.next();
+  for (const o of exports.deserializeOps(ops)) {
     switch (o.opcode) {
       case '=':
         oldPos += o.chars;
@@ -1025,15 +1029,18 @@ class TextLinesMutator {
  * @returns {string} the integrated changeset
  */
 const applyZip = (in1, in2, func) => {
-  const iter1 = new OpIter(in1);
-  const iter2 = new OpIter(in2);
+  const ops1 = exports.deserializeOps(in1);
+  const ops2 = exports.deserializeOps(in2);
+  let next1 = ops1.next();
+  let next2 = ops2.next();
   const assem = exports.smartOpAssembler();
-  const op1 = new Op();
-  const op2 = new Op();
-  while (op1.opcode || iter1.hasNext() || op2.opcode || iter2.hasNext()) {
-    if ((!op1.opcode) && iter1.hasNext()) iter1.next(op1);
-    if ((!op2.opcode) && iter2.hasNext()) iter2.next(op2);
-    const opOut = func(op1, op2);
+  while (!next1.done || !next2.done) {
+    if (!next1.done && !next1.value.opcode) next1 = ops1.next();
+    if (!next2.done && !next2.value.opcode) next2 = ops2.next();
+    if (next1.value == null) next1.value = new Op();
+    if (next2.value == null) next2.value = new Op();
+    if (!next1.value.opcode && !next2.value.opcode) break;
+    const opOut = func(next1.value, next2.value);
     if (opOut && opOut.opcode) assem.append(opOut);
   }
   assem.endDocument();
@@ -1095,12 +1102,10 @@ exports.pack = (oldLen, newLen, opsStr, bank) => {
 exports.applyToText = (cs, str) => {
   const unpacked = exports.unpack(cs);
   assert(str.length === unpacked.oldLen, `mismatched apply: ${str.length} / ${unpacked.oldLen}`);
-  const csIter = new OpIter(unpacked.ops);
   const bankIter = exports.stringIterator(unpacked.charBank);
   const strIter = exports.stringIterator(str);
   const assem = exports.stringAssembler();
-  while (csIter.hasNext()) {
-    const op = csIter.next();
+  for (const op of exports.deserializeOps(unpacked.ops)) {
     switch (op.opcode) {
       case '+':
       // op is + and op.lines 0: no newlines must be in op.chars
@@ -1140,11 +1145,9 @@ exports.applyToText = (cs, str) => {
  */
 exports.mutateTextLines = (cs, lines) => {
   const unpacked = exports.unpack(cs);
-  const csIter = new OpIter(unpacked.ops);
   const bankIter = exports.stringIterator(unpacked.charBank);
   const mut = new TextLinesMutator(lines);
-  while (csIter.hasNext()) {
-    const op = csIter.next();
+  for (const op of exports.deserializeOps(unpacked.ops)) {
     switch (op.opcode) {
       case '+':
         mut.insert(bankIter.take(op.chars), op.lines);
@@ -1377,16 +1380,12 @@ exports.mutateAttributionLines = (cs, lines, pool) => {
 exports.joinAttributionLines = (theAlines) => {
   const assem = exports.mergingOpAssembler();
   for (const aline of theAlines) {
-    const iter = new OpIter(aline);
-    while (iter.hasNext()) {
-      assem.append(iter.next());
-    }
+    for (const op of exports.deserializeOps(aline)) assem.append(op);
   }
   return assem.toString();
 };
 
 exports.splitAttributionLines = (attrOps, text) => {
-  const iter = new OpIter(attrOps);
   const assem = exports.mergingOpAssembler();
   const lines = [];
   let pos = 0;
@@ -1400,8 +1399,7 @@ exports.splitAttributionLines = (attrOps, text) => {
     pos += op.chars;
   };
 
-  while (iter.hasNext()) {
-    const op = iter.next();
+  for (const op of exports.deserializeOps(attrOps)) {
     let numChars = op.chars;
     let numLines = op.lines;
     while (numLines > 1) {
@@ -1544,11 +1542,9 @@ const toSplices = (cs) => {
   const splices = [];
 
   let oldPos = 0;
-  const iter = new OpIter(unpacked.ops);
   const charIter = exports.stringIterator(unpacked.charBank);
   let inSplice = false;
-  while (iter.hasNext()) {
-    const op = iter.next();
+  for (const op of exports.deserializeOps(unpacked.ops)) {
     if (op.opcode === '=') {
       oldPos += op.chars;
       inSplice = false;
@@ -1786,11 +1782,10 @@ exports.copyAText = (atext1, atext2) => {
  */
 exports.opsFromAText = function* (atext) {
   // intentionally skips last newline char of atext
-  const iter = new OpIter(atext.attribs);
   let lastOp = null;
-  while (iter.hasNext()) {
+  for (const op of exports.deserializeOps(atext.attribs)) {
     if (lastOp != null) yield lastOp;
-    lastOp = iter.next();
+    lastOp = op;
   }
   if (lastOp == null) return;
   // exclude final newline
@@ -2064,7 +2059,6 @@ exports.inverse = (cs, lines, alines, pool) => {
   let curLineNextOp = new Op('+');
 
   const unpacked = exports.unpack(cs);
-  const csIter = new OpIter(unpacked.ops);
   const builder = exports.builder(unpacked.newLen);
 
   const consumeAttribRuns = (numChars, func /* (len, attribs, endsLine)*/) => {
@@ -2147,8 +2141,7 @@ exports.inverse = (cs, lines, alines, pool) => {
     };
   };
 
-  while (csIter.hasNext()) {
-    const csOp = csIter.next();
+  for (const csOp of exports.deserializeOps(unpacked.ops)) {
     if (csOp.opcode === '=') {
       if (csOp.attribs) {
         const csAttribs = [];
