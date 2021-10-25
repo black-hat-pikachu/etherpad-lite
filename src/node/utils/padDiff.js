@@ -273,7 +273,7 @@ PadDiff.prototype._createDeletionChangeset = function (cs, startAText, apool) {
   let curChar = 0;
   let curLineOpIter = null;
   let curLineOpIterLine;
-  let curLineNextOp = Changeset.newOp('+');
+  let curLineNextOp = new Changeset.Op('+');
 
   const unpacked = Changeset.unpack(cs);
   const csIter = Changeset.opIterator(unpacked.ops);
