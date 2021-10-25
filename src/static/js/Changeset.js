@@ -693,7 +693,7 @@ const textLinesMutator = (lines) => {
    * @returns {string}
    */
   const linesGet = (idx) => {
-    if (lines.get) {
+    if ('get' in lines) {
       return lines.get(idx);
     } else {
       return lines[idx];
